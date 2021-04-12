@@ -8,15 +8,17 @@ import torch
 class Evaluation():
     def __init__(self):
         self.utils = Utilities()
+        self.device = self.utils.select_processing_unit()
     
     def train_model(self, model, train_loader, valid_loader, criterion, optimizer, 
-                    batch_size, file_path, epochs, iterations = 2, patience = 10):
+                    batch_size, train_data_size, file_path, epochs, iterations = 2, 
+                    patience = 10):
         start_time = time.time()
         train_loss, valid_loss = 0, 0
         early_stop_count = 0
         early_stop = False
         min_valid_loss = np.Inf
-        step_total = int(np.ceil(self.utils.TRAIN_DATA_SIZE / batch_size))
+        step_total = int(np.ceil(train_data_size / batch_size))
         # Point when training switches to validation
         step_count = step_total // iterations
         training_losses, validation_losses = [], []
@@ -30,8 +32,8 @@ class Evaluation():
 
             for images, labels in train_loader:
                 steps += 1
-                images = images.to(DEVICE)
-                labels = labels.to(DEVICE)
+                images = images.to(self.device)
+                labels = labels.to(self.device)
 
                 # Vanishing gradient problem
                 optimizer.zero_grad()
@@ -58,7 +60,7 @@ class Evaluation():
                     training_losses.append(train_loss)
                     validation_losses.append(valid_loss)
 
-                    print(f"Epoch: {epoch + 1}/{epochs} | Step: {steps}/{step_total}",
+                    print(f"\tEpoch: {epoch + 1}/{epochs} | Step: {steps}/{step_total}",
                           f" | Training Loss: {train_loss:.3f} | Validation Loss: {valid_loss:.3f}",
                           f" | Accuracy: {accuracy * 100:.2f}%")
 
@@ -66,8 +68,8 @@ class Evaluation():
                                                              early_stop, early_stop_count)
 
                     if valid_loss <= min_valid_loss:
-                        print(f"The validation loss has changed from {min_valid_loss:.3f}",
-                              f" to {valid_loss:.3f}. Model Saved")
+                        print(f"\tThe validation loss has changed from {min_valid_loss:.3f}",
+                              f" to {valid_loss:.3f}.", end=" ")
                         min_valid_loss = valid_loss
                         self.utils.save_model(model, file_path, training_losses, 
                                               validation_losses)
@@ -76,7 +78,7 @@ class Evaluation():
                         break
                     else:
                         early_stop_count += 1
-                        print(f"Early stop counter: {early_stop_count}/{patience}")  
+                        print(f"\tEarly stop counter: {early_stop_count}/{patience}")  
 
                     train_loss = 0
                     model.train()
@@ -86,8 +88,8 @@ class Evaluation():
     def validate_model(self, model, valid_loader, criterion):
         accuracy, valid_loss = 0, 0
         for images, labels in valid_loader:
-            images = images.to(DEVICE)
-            labels = labels.to(DEVICE)
+            images = images.to(self.device)
+            labels = labels.to(self.device)
 
             output = model.forward(images)
             # Comparing predicted values against true values
@@ -104,10 +106,10 @@ class Evaluation():
     def test_model(self, model, model_name, test_loader, top_k_pred_count = 3):
         # top_k_pred_count = The number of k predictions (default 3) per image (performance metric)
         with torch.no_grad():
-            model.to(DEVICE)
+            model.to(self.device)
             for images, labels in test_loader:
-                images = images.to(DEVICE)
-                labels = labels.to(DEVICE)
+                images = images.to(self.device)
+                labels = labels.to(self.device)
                 output, _ = model.forward(images)
                 probabilities = torch.exp(output)
                 # k_preds = Classes of strongest k predictions for each image
@@ -125,8 +127,8 @@ class Evaluation():
         accuracy = correct_pred_count / len(labels)
         top1_error = 1 - accuracy
 
-        top_preds = top_preds.to(DEVICE)
-        k_preds = k_preds.to(DEVICE)
+        top_preds = top_preds.to(self.device)
+        k_preds = k_preds.to(self.device)
         k_correct_count = 0
 
         for prediction in range(len(labels)):

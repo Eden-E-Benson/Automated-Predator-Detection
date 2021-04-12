@@ -36,7 +36,7 @@ class Utilities():
         valid_sampler = SubsetRandomSampler(valid_idx)
         test_sampler = SubsetRandomSampler(test_idx)
         train_sampler = SubsetRandomSampler(train_idx)
-        self.TRAIN_DATA_SIZE = len(train_sampler)
+        train_data_size = len(train_sampler)
 
         valid_loader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, 
                                                    sampler = valid_sampler)
@@ -45,7 +45,7 @@ class Utilities():
         train_loader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, 
                                                    sampler = train_sampler)
 
-        return valid_loader, test_loader, train_loader
+        return valid_loader, test_loader, train_loader, train_data_size
     
     def save_model(self, model, file_path, training_losses, validation_losses):
         torch.save({
@@ -81,8 +81,8 @@ class Utilities():
     def select_processing_unit(self):
         if torch.cuda.is_available():
             device = "cuda"
-            print("GPU")
+            print("Device set to GPU.")
         else:
             device = "cpu"
-            print("CPU")
+            print("Device set to CPU.")
         return device
