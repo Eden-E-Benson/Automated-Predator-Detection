@@ -69,7 +69,7 @@ class Utilities():
     def time_taken(self, time_difference):
         minute_as_seconds, seconds = divmod(time_difference, 60)
         hours, minutes = divmod(minute_as_seconds, 60)
-        print(f"Total time taken: {hours:.2f}:{minutes:.2f}:{seconds:.2f}")
+        print(f"Total time taken: {hours:.0f} hrs, {minutes:.0f} mins, {seconds:.2g} secs")
 
     def early_stop_check(self, valid_loss, patience, early_stop, counter):
         if counter >= patience:
@@ -86,3 +86,5 @@ class Utilities():
             device = "cpu"
             print("Device set to CPU.")
         return device
+    
+    

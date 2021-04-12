@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from scikitplot.metrics import plot_confusion_matrix, plot_roc
+
 class Plotting():
     def plot_losses(self, training_losses, validation_losses):
         plt.figure()
@@ -16,7 +18,8 @@ class Plotting():
         plt.show()
 
     def stats_table(self, metrics):
-        table = pd.DataFrame(columns = list(metrics[0].keys()))
+        headers = list(metrics[0].keys())
+        table = pd.DataFrame(columns = headers)
         for metric in range(len(metrics)):
             table = table.append(metrics[metric], ignore_index = True)
         return table
@@ -34,3 +37,12 @@ class Plotting():
     def _imshow(self, image):
         image = image / 2 + 0.5 #unnormalise image
         plt.imshow(np.transpose(image, (1, 2, 0)))
+    
+    def plot_roc_curve(self, model, probabilities, labels, figsize):
+        plot_roc(labels, probabilities, figsize=figsize, title="ROC Curve")
+        plt.savefig("plots/roc_curve.png")
+    
+    def plot_cm(self, model, predictions, labels, class_labels, figsize):
+        plot_confusion_matrix(labels, predictions, figsize=figsize, labels=class_labels,
+                              x_tick_rotation=90, title="Confusion Matrix")
+        plt.savefig("plots/confusion_matrix.png")
